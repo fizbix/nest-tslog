@@ -1,14 +1,15 @@
-import { DynamicModule, Module, Provider } from '@nestjs/common';
-import { BaseLogger } from 'tslog';
+import { DynamicModule, Module } from '@nestjs/common';
 
-import { ICreateLoggerOptions, ITsLogModuleOptions } from './ts';
+import { ICreateNestTsLogLoggerOptions } from './ts';
 import {
   TsLogModuleHost,
   TS_LOG_OPTIONS_TYPE,
   TS_LOG_ASYNC_OPTIONS_TYPE
 } from './module.declaration';
-import { TsLogLogger } from './tslog.logger';
-import { MODULE_OPTIONS_TOKEN } from './constants';
+
+import { createModuleProviders, createNestTsLogLogger } from './utils/tslog.providers';
+
+import { NestTsLogLogger } from './instances/nest-tslog.logger';
 
 @Module({})
 export class TsLogModule extends TsLogModuleHost {
@@ -19,21 +20,14 @@ export class TsLogModule extends TsLogModuleHost {
       ...rest
     } = super.forRoot(options);
 
-    const loggerProvider = this.createLoggerProvider();
+    const providers = createModuleProviders();
 
     return {
       ...rest,
-      providers: [...defProviders, loggerProvider],
-      exports: [...defExports, loggerProvider],
+      providers: [...defProviders, ...providers],
+      exports: [...defExports, ...providers],
       global: true
     };
-  }
-
-  public static createLogger<TLogObj = unknown>(
-    options: ICreateLoggerOptions<TLogObj>
-  ): TsLogLogger<TLogObj> {
-    const baseLogger = new BaseLogger<TLogObj>(options.loggerSettings, options.logObject);
-    return new TsLogLogger<TLogObj>(baseLogger, options.globalLogCallback);
   }
 
   public static forRootAsync(
@@ -47,28 +41,19 @@ export class TsLogModule extends TsLogModuleHost {
       ...rest
     } = super.forRootAsync(options);
 
-    const provider = this.createLoggerProvider();
+    const providers = createModuleProviders();
 
     return {
       ...rest,
-      providers: [...defProviders, provider],
-      exports: [...defExports, provider],
+      providers: [...defProviders, ...providers],
+      exports: [...defExports, ...providers],
       global: true
     };
   }
 
-  private static createLoggerProvider<TLogObj>(): Provider<TsLogLogger<TLogObj>> {
-    return {
-      provide: TsLogLogger,
-      useFactory: ({
-        loggerSettings,
-        logObject: mainLogObject,
-        globalLogCallback
-      }: ITsLogModuleOptions<TLogObj>): TsLogLogger<TLogObj> => {
-        const baseLogger = new BaseLogger<TLogObj>(loggerSettings, mainLogObject);
-        return new TsLogLogger(baseLogger, globalLogCallback);
-      },
-      inject: [MODULE_OPTIONS_TOKEN]
-    };
+  public static createLogger<TLogObj = unknown>(
+    options: ICreateNestTsLogLoggerOptions<TLogObj>
+  ): NestTsLogLogger<TLogObj> {
+    return createNestTsLogLogger(options);
   }
 }

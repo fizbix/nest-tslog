@@ -1,7 +1,7 @@
 import { ConfigurableModuleBuilder } from '@nestjs/common';
 
 import { ITsLogModuleOptions } from './ts';
-import { MODULE_OPTIONS_TOKEN } from './constants';
+import { NEST_TSLOG_MODULE_OPTIONS_TOKEN } from './constants';
 
 export const {
   ASYNC_OPTIONS_TYPE: TS_LOG_ASYNC_OPTIONS_TYPE,
@@ -10,7 +10,7 @@ export const {
   ConfigurableModuleClass: TsLogModuleHost
 } = new ConfigurableModuleBuilder<ITsLogModuleOptions>({
   moduleName: 'TsLogModule',
-  optionsInjectionToken: MODULE_OPTIONS_TOKEN
+  optionsInjectionToken: NEST_TSLOG_MODULE_OPTIONS_TOKEN
 })
   .setClassMethodName('forRoot')
   .setFactoryMethodName('createTsLogOptions')

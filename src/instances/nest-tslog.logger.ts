@@ -1,21 +1,12 @@
 import { LoggerService } from '@nestjs/common';
 import { BaseLogger } from 'tslog';
-import { ILogObjMeta } from 'tslog/dist/types/interfaces';
 
-import { CONTEXT_CLC, NEST_LOG_LEVELS } from './constants';
-import { TLogCallback } from './ts/types/logger.types';
+import { CONTEXT_CLC, NEST_LOG_LEVELS, PID_CLC } from '../constants';
 
-export class TsLogLogger<TLogObj = unknown> implements LoggerService {
+export class NestTsLogLogger<TLogObj = unknown> implements LoggerService {
   private context?: string;
 
-  private logCallback?: TLogCallback<TLogObj>;
-
-  constructor(
-    private readonly logger: BaseLogger<TLogObj>,
-    globalLogCallback?: TLogCallback<TLogObj>
-  ) {
-    this.logCallback = globalLogCallback;
-  }
+  constructor(private readonly logger: BaseLogger<TLogObj>) {}
 
   public log(message: unknown, ...optionalParams: unknown[]): void {
     const { logLevelId, logLevelName } = NEST_LOG_LEVELS['log'];
@@ -46,10 +37,6 @@ export class TsLogLogger<TLogObj = unknown> implements LoggerService {
     this.context = context;
   }
 
-  public setLogCallback(logCallback: TLogCallback<TLogObj>): void {
-    this.logCallback = logCallback;
-  }
-
   public get tslogRef(): BaseLogger<TLogObj> {
     return this.logger;
   }
@@ -60,24 +47,22 @@ export class TsLogLogger<TLogObj = unknown> implements LoggerService {
     message: unknown,
     ...optionalParams: unknown[]
   ): void {
-    const { context, messages } = this.getContextAndMessagesFromMeta(
+    const { context, messages: plainMessages } = this.getContextAndMessagesFromMeta(
       this.context && this.context.length > 0
         ? [message, ...optionalParams, this.context]
         : [message, ...optionalParams]
     );
 
-    let logResult: (TLogObj & ILogObjMeta) | undefined;
+    const pid = this.getFormattedPid();
+
+    const messages = [pid, ...plainMessages];
 
     if (context.length > 0) {
       const colorizedContext = CONTEXT_CLC(`[${context}]`);
 
-      logResult = this.logger.log(logLevelId, logLevelName, colorizedContext, ...messages);
+      this.logger.log(logLevelId, logLevelName, colorizedContext, ...messages);
     } else {
-      logResult = this.logger.log(logLevelId, logLevelName, ...messages);
-    }
-
-    if (this.logCallback) {
-      this.logCallback(logResult);
+      this.logger.log(logLevelId, logLevelName, ...messages);
     }
   }
 
@@ -107,5 +92,11 @@ export class TsLogLogger<TLogObj = unknown> implements LoggerService {
       messages: meta.slice(0, meta.length - 1),
       context: lastEl
     };
+  }
+
+  private getFormattedPid(): string {
+    const pid = process.pid;
+
+    return `${PID_CLC(`[${pid}]`)} -`;
   }
 }

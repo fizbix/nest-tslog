@@ -1,6 +1,8 @@
-export const MODULE_OPTIONS_TOKEN = Symbol('NEST_TSLOG_MODULE_OPTIONS_TOKEN');
+export const NEST_TSLOG_MODULE_OPTIONS_TOKEN = Symbol('NEST_TSLOG_MODULE_OPTIONS_TOKEN');
 
 export const CONTEXT_CLC = (text: string): string => `\x1b[33m${text}\x1b[39m`;
+
+export const PID_CLC = (text: string): string => `\x1b[36m${text}\x1b[39m`;
 
 export const NEST_LOG_LEVELS = {
   log: {
