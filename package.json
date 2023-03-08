@@ -2,7 +2,7 @@
   "name": "@fizbix/nest-tslog",
   "version": "1.0.0",
   "license": "MIT",
-  "description": "A NestJs module wrapper for tslog",
+  "description": "A Nest.js module wrapper for tslog",
   "keywords": [
     "nest",
     "nestjs",
